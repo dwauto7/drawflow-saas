@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DrawFlow - Authentication</title>
+    <script src="https://unpkg.com/@supabase/supabase-js"></script>
+    <script src="https://unpkg.com/@supabase/auth-ui-js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/@supabase/auth-ui-js/dist/auth-ui.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Auth Container -->
+        <div id="auth-container" class="max-w-md mx-auto"></div>
+        
+        <!-- Dashboard (hidden initially) -->
+        <div id="dashboard" class="max-w-4xl mx-auto hidden">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-2xl font-bold text-gray-800">Contractor Dashboard</h2>
+                <p class="text-gray-600 mt-2">Welcome, <span id="user-email"></span></p>
+                
+                <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                    <h3 class="font-semibold text-blue-800">Construction Draw Management</h3>
+                    <p class="text-blue-600 mt-2">Draw submission features coming soon...</p>
+                </div>
+                
+                <button onclick="logout()" class="mt-6 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                    Logout
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Supabase configuration - Vercel will auto-replace these
+        const supabaseUrl = '%%NEXT_PUBLIC_SUPABASE_URL%%';
+        const supabaseKey = '%%NEXT_PUBLIC_SUPABASE_ANON_KEY%%';
+        
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        
+        // Initialize Auth UI
+        supabase.auth.ui({
+            container: '#auth-container',
+            theme: 'default',
+            appearance: {
+                theme: 'light',
+                variables: {
+                    default: {
+                        colors: {
+                            brand: '#2563eb',
+                            brandAccent: '#1d4ed8'
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Check auth state
+        supabase.auth.onAuthStateChange((event, session) => {
+            if (session) {
+                // User is logged in
+                document.getElementById('auth-container').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                document.getElementById('user-email').textContent = session.user.email;
+            } else {
+                // User is logged out
+                document.getElementById('auth-container').classList.remove('hidden');
+                document.getElementById('dashboard').classList.add('hidden');
+            }
+        });
+        
+        // Logout function
+        async function logout() {
+            await supabase.auth.signOut();
+        }
+        
+        // Check initial auth state
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session) {
+                document.getElementById('auth-container').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                document.getElementById('user-email').textContent = session.user.email;
+            }
+        });
+    </script>
+</body>
+</html>
