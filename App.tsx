@@ -43,15 +43,26 @@ const App: React.FC = () => {
   const [view, setView] = useState<View>('landing');
   const [loading, setLoading] = useState(true);
 
+  // ADD DEBUG LOGGING
+  console.log('App rendered - view:', view, 'session:', session, 'loading:', loading);
+
+  const handleLoginClick = () => {
+    console.log('Login clicked - changing view to auth');
+    setView('auth');
+  };
+
   useEffect(() => {
+    console.log('Auth effect running');
     // Check for an active session on initial load
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Session loaded:', session);
       setSession(session);
       setLoading(false);
     });
 
     // Listen for changes in authentication state
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log('Auth state changed:', _event, session);
       setSession(session);
       // If user logs out, reset view to the landing page
       if (!session) {
@@ -62,6 +73,7 @@ const App: React.FC = () => {
     // Clean up the subscription on component unmount
     return () => subscription.unsubscribe();
   }, []);
+
 
   if (loading) {
     return (
