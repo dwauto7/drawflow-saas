@@ -73,7 +73,7 @@ const Dashboard: React.FC<DashboardProps> = ({ session }) => {
         amount: parseFloat(newDraw.amount),
         description: newDraw.description,
         submitted_by: session.user.email,
-      }),
+        }),
     });
 
     if (!response.ok) {
@@ -104,8 +104,7 @@ const Dashboard: React.FC<DashboardProps> = ({ session }) => {
     setIsSubmitting(false);
   }
 };
-        };
-
+  
     return (
         <div className="min-h-screen bg-gray-100 font-sans">
             <header className="bg-white shadow-sm">
