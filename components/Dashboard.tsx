@@ -57,28 +57,54 @@ const Dashboard: React.FC<DashboardProps> = ({ session }) => {
         }
     };
 
-    const handleSubmitDraw = (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsSubmitting(true);
-        const submittedDraw: Draw = {
-            id: draws.length > 0 ? Math.max(...draws.map(d => d.id)) + 1 : 1,
-            project: newDraw.project,
-            amount: parseFloat(newDraw.amount),
-            description: newDraw.description,
-            date: new Date().toISOString().split('T')[0],
-            status: 'Pending',
-            attachmentName: newDraw.attachment?.name,
-        };
-        // Simulate API call
-        setTimeout(() => {
-            setDraws(prev => [submittedDraw, ...prev]);
-            setNewDraw({ project: projects[0], amount: '', description: '', attachment: null });
-            (e.target as HTMLFormElement).reset();
-            setIsSubmitting(false);
-            setShowSuccess(true);
-            setTimeout(() => setShowSuccess(false), 3000);
-        }, 1000);
+   const handleSubmitDraw = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setIsSubmitting(true);
+
+  try {
+    // 1. Submit to n8n webhook
+    const response = await fetch('https://n8n.aiblizzard.work/webhook/Draw-Submit', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        project_name: newDraw.project, // Use project name instead of ID
+        amount: parseFloat(newDraw.amount),
+        description: newDraw.description,
+        submitted_by: session.user.email,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to submit draw');
+    }
+
+    // 2. Add to local state for immediate UI update
+    const submittedDraw: Draw = {
+      id: draws.length > 0 ? Math.max(...draws.map(d => d.id)) + 1 : 1,
+      project: newDraw.project,
+      amount: parseFloat(newDraw.amount),
+      description: newDraw.description,
+      date: new Date().toISOString().split('T')[0],
+      status: 'Pending',
+      attachmentName: newDraw.attachment?.name,
     };
+
+    setDraws(prev => [submittedDraw, ...prev]);
+    setNewDraw({ project: projects[0], amount: '', description: '', attachment: null });
+    (e.target as HTMLFormElement).reset();
+    setShowSuccess(true);
+    setTimeout(() => setShowSuccess(false), 3000);
+
+  } catch (error) {
+    console.error('Error submitting draw:', error);
+    alert('Error submitting draw. Please try again.');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+        };
 
     return (
         <div className="min-h-screen bg-gray-100 font-sans">
